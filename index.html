@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GastroCheck UZ - Klinik Protokol & Davolash Standartlari</title>
+    <!-- PDF kutubxonalari -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary: #0066cc;
+            --primary-dark: #004c99;
+            --accent: #00d2ff;
+            --success: #28a745;
+            --warning: #ffc107;
+            --danger: #dc3545;
+            --info: #17a2b8;
+            --bg-gradient: linear-gradient(135deg, #f0f4f8 0%, #c3cfe2 100%);
+            --glass-bg: rgba(255, 255, 255, 0.95);
+            --glass-border: rgba(255, 255, 255, 0.5);
+            --shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.1);
+            --radius: 16px;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Poppins', sans-serif; }
+        
+        body {
+            background: var(--bg-gradient);
+            min-height: 100vh;
+            color: #333;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        /* --- Auth Section --- */
+        .auth-container {
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius);
+            padding: 40px;
+            width: 100%;
+            max-width: 450px;
+            box-shadow: var(--shadow);
+            text-align: center;
+            animation: fadeIn 0.6s ease-out;
+        }
+        .logo-area h1 { color: var(--primary); font-size: 2rem; font-weight: 700; margin-bottom: 5px; }
+        .logo-area p { color: #666; font-size: 0.9rem; margin-bottom: 30px; }
+        
+        .input-group { margin-bottom: 20px; text-align: left; }
+        .input-group label { display: block; margin-bottom: 8px; font-size: 0.9rem; color: #555; font-weight: 500; }
+        .input-group input, .input-group select {
+            width: 100%; padding: 12px 15px; border: 2px solid #e1e1e1; border-radius: 10px;
+            font-size: 1rem; transition: 0.3s; outline: none;
+        }
+        .input-group input:focus, .input-group select:focus { border-color: var(--primary); box-shadow: 0 0 0 4px rgba(0, 102, 204, 0.1); }
+
+        .btn-primary {
+            width: 100%; padding: 14px; background: linear-gradient(to right, var(--primary), var(--accent));
+            color: white; border: none; border-radius: 10px; font-size: 1rem; font-weight: 600;
+            cursor: pointer; transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 4px 15px rgba(0, 102, 204, 0.3);
+        }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0, 102, 204, 0.4); }
+        
+        .toggle-link { margin-top: 20px; font-size: 0.9rem; color: var(--primary); cursor: pointer; text-decoration: underline; }
+        .error-msg { color: var(--danger); font-size: 0.85rem; margin-top: 5px; display: none; }
+
+        /* --- Dashboard Section --- */
+        .dashboard-container {
+            width: 100%;
+            max-width: 1200px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            padding: 30px;
+            display: none;
+            animation: slideUp 0.6s ease-out;
+        }
+
+        .dash-header {
+            display: flex; justify-content: space-between; align-items: center;
+            border-bottom: 2px solid #f0f0f0; padding-bottom: 20px; margin-bottom: 30px;
+        }
+        .user-welcome { font-size: 1.1rem; color: #555; }
+        .logout-btn {
+            background: #ffebee; color: var(--danger); border: none; padding: 8px 20px;
+            border-radius: 20px; cursor: pointer; font-weight: 600; transition: 0.3s;
+        }
+        .logout-btn:hover { background: #ffcdd2; }
+
+        /* Controls Grid */
+        .controls-grid {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 30px;
+        }
+        @media (max-width: 768px) { .controls-grid { grid-template-columns: 1fr; } }
+
+        .card {
+            background: white; padding: 25px; border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05); border: 1px solid #eee;
+        }
+        .card h3 { margin-bottom: 15px; color: var(--primary); font-size: 1.1rem; display: flex; align-items: center; gap: 10px; }
+
+        .upload-zone {
+            border: 2px dashed #ccc; border-radius: 10px; padding: 30px; text-align: center;
+            background: #fafafa; cursor: pointer; transition: 0.3s;
+        }
+        .upload-zone:hover { border-color: var(--primary); background: #f0f8ff; }
+        .upload-icon { font-size: 2.5rem; color: var(--primary); margin-bottom: 10px; }
+
+        .manual-form { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .full-width { grid-column: span 2; }
+        @media (max-width: 600px) { .manual-form { grid-template-columns: 1fr; } .full-width { grid-column: span 1; } }
+
+        .btn-add { background: var(--success); grid-column: span 2; margin-top: 10px; }
+        .btn-add:hover { background: #218838; }
+
+        /* Table Styles */
+        .table-container { overflow-x: auto; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+        table { width: 100%; border-collapse: collapse; background: white; min-width: 900px; }
+        th { background: var(--primary); color: white; padding: 15px; text-align: left; font-weight: 600; }
+        td { padding: 12px 15px; border-bottom: 1px solid #eee; color: #555; vertical-align: middle; font-size: 0.9rem; }
+        tr:last-child td { border-bottom: none; }
+        tr:hover { background: #f9f9f9; }
+
+        .badge { padding: 6px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; color: white; display: inline-block; text-align: center; }
+        .bg-severe { background: var(--danger); box-shadow: 0 2px 5px rgba(220, 53, 69, 0.3); }
+        .bg-moderate { background: var(--warning); color: #333; box-shadow: 0 2px 5px rgba(255, 193, 7, 0.3); }
+        .bg-mild { background: var(--success); box-shadow: 0 2px 5px rgba(40, 167, 69, 0.3); }
+        .bg-info { background: var(--info); }
+        .bg-alert { background: #ff4757; animation: pulse 2s infinite; }
+
+        .action-bar { margin-top: 25px; display: flex; justify-content: flex-end; gap: 15px; }
+        .btn-pdf {
+            background: var(--primary); color: white; border: none; padding: 12px 25px;
+            border-radius: 10px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px;
+            box-shadow: 0 4px 10px rgba(0, 102, 204, 0.3); transition: 0.3s;
+        }
+        .btn-pdf:hover { transform: translateY(-2px); box-shadow: 0 6px 15px rgba(0, 102, 204, 0.4); }
+        .btn-clear {
+            background: #fff; color: var(--danger); border: 1px solid var(--danger); padding: 12px 25px;
+            border-radius: 10px; font-weight: 600; cursor: pointer; transition: 0.3s;
+        }
+        .btn-clear:hover { background: #ffebee; }
+
+        /* Animations */
+        @keyframes fadeIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(255, 71, 87, 0.7); } 70% { box-shadow: 0 0 0 10px rgba(255, 71, 87, 0); } 100% { box-shadow: 0 0 0 0 rgba(255, 71, 87, 0); } }
+    </style>
+</head>
+<body>
+
+    <!-- LOGIN / REGISTER SECTION -->
+    <div id="auth-section" class="auth-container">
+        <div class="logo-area">
+            <h1><i class="fas fa-stethoscope"></i> GastroCheck UZ</h1>
+            <p>Klinik Protokollar (Buyruq 180) va JSST Standartlari</p>
+        </div>
+
+        <!-- Login Form -->
+        <form id="login-form">
+            <div class="input-group">
+                <label>Telefon raqam</label>
+                <input type="tel" id="login-phone" placeholder="+998 90 123 45 67" required>
+            </div>
+            <div class="input-group">
+                <label>Parol</label>
+                <input type="password" id="login-pass" placeholder="********" required>
+            </div>
+            <button type="submit" class="btn-primary">Kirish</button>
+            <div class="error-msg" id="login-error">Telefon yoki parol noto'g'ri!</div>
+            <div class="toggle-link" onclick="toggleAuth()">Hisobingiz yo'qmi? Ro'yxatdan o'tish</div>
+        </form>
+
+        <!-- Register Form -->
+        <form id="register-form" style="display: none;">
+            <div class="input-group">
+                <label>Telefon raqam</label>
+                <input type="tel" id="reg-phone" placeholder="+998 90 123 45 67" required>
+            </div>
+            <div class="input-group">
+                <label>Parol yaratish (min. 6 ta belgi)</label>
+                <input type="password" id="reg-pass" placeholder="********" minlength="6" required>
+            </div>
+            <div class="input-group">
+                <label>Parolni tasdiqlash</label>
+                <input type="password" id="reg-confirm" placeholder="********" minlength="6" required>
+            </div>
+            <button type="submit" class="btn-primary">Ro'yxatdan o'tish</button>
+            <div class="error-msg" id="reg-error"></div>
+            <div class="toggle-link" onclick="toggleAuth()">Allaqachon ro'yxatdan o'tganmisiz? Kirish</div>
+        </form>
+    </div>
+
+    <!-- DASHBOARD SECTION -->
+    <div id="dashboard-section" class="dashboard-container">
+        <div class="dash-header">
+            <div>
+                <h2 style="color: var(--primary);"><i class="fas fa-vial"></i> GastroCheck UZ</h2>
+                <div class="user-welcome">Foydalanuvchi: <span id="display-phone"></span></div>
+            </div>
+            <button class="logout-btn" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Chiqish</button>
+        </div>
+
+        <div class="controls-grid">
+            <!-- Excel Upload Card -->
+            <div class="card">
+                <h3><i class="fas fa-file-excel"></i> Excel Fayl Yuklash</h3>
+                <div class="upload-zone" onclick="document.getElementById('file-input').click()">
+                    <div class="upload-icon"><i class="fas fa-cloud-upload-alt"></i></div>
+                    <p>Faylni tanlang yoki shu yerga tashlang (.xlsx, .csv)</p>
+                    <input type="file" id="file-input" accept=".xlsx, .xls, .csv" style="display: none;" onchange="handleFileUpload(this)">
+                </div>
+            </div>
+
+            <!-- Manual Entry Card -->
+            <div class="card">
+                <h3><i class="fas fa-edit"></i> Qo'lda Ma'lumot Kiritish</h3>
+                <form id="manual-form" class="manual-form" onsubmit="addManualData(event)">
+                    <div class="input-group" style="margin-bottom: 0;">
+                        <input type="text" id="m-fio" placeholder="F.I.O" required>
+                    </div>
+                    <div class="input-group" style="margin-bottom: 0;">
+                        <select id="m-pathogen" style="width: 100%; padding: 12px; border: 2px solid #e1e1e1; border-radius: 10px;" required>
+                            <option value="" disabled selected>Patogen tanlang</option>
+                            <optgroup label="Viruslar">
+                                <option value="Rotavirus">Rotavirus</option>
+                                <option value="Norovirus">Norovirus</option>
+                                <option value="Astrovirus">Astrovirus</option>
+                                <option value="Adenovirus">Adenovirus</option>
+                            </optgroup>
+                            <optgroup label="Bakteriyalar">
+                                <option value="Shigella">Shigella (Dizenteriya)</option>
+                                <option value="Salmonella">Salmonella</option>
+                                <option value="Campylobacter">Campylobacter</option>
+                                <option value="E. coli">E. coli</option>
+                            </optgroup>
+                        </select>
+                    </div>
+                    <div class="input-group" style="margin-bottom: 0;">
+                        <input type="number" id="m-age" placeholder="Yosh (oy/yil)" step="0.1" required>
+                    </div>
+                    <div class="input-group" style="margin-bottom: 0;">
+                        <input type="number" id="m-weight" placeholder="Vazn (kg)" step="0.1" required>
+                    </div>
+                    <div class="input-group full-width" style="margin-bottom: 0;">
+                        <input type="number" id="m-ct" placeholder="Ct Qiymati" step="0.1" required>
+                    </div>
+                    <div class="input-group full-width" style="margin-bottom: 0;">
+                        <select id="m-dehydration" style="width: 100%; padding: 12px; border: 2px solid #e1e1e1; border-radius: 10px;">
+                            <option value="none">Suvsizlanish yo'q</option>
+                            <option value="some">Ba'zi belgilar (B rejasi)</option>
+                            <option value="severe">Og'ir suvsizlanish (C rejasi)</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn-primary btn-add"><i class="fas fa-plus"></i> Tahlil Qilish va Qo'shish</button>
+                </form>
+            </div>
+        </div>
+
+        <div id="results-section">
+            <h3 style="margin-bottom: 15px; color: #333;">📊 Tahlil Natijalari va Davolash Rejasi</h3>
+            <div class="table-container">
+                <table id="results-table">
+                    <thead>
+                        <tr>
+                            <th>F.I.O</th>
+                            <th>Patogen</th>
+                            <th>Ct</th>
+                            <th>Daraja</th>
+                            <th>Reja</th>
+                            <th>Suyuqlik Hajmi</th>
+                            <th>Davolash Joyi</th>
+                            <th>Asosiy Tavsiya</th>
+                        </tr>
+                    </thead>
+                    <tbody><!-- Data rows will appear here --></tbody>
+                </table>
+            </div>
+            
+            <div class="action-bar">
+                <button class="btn-clear" onclick="clearAllData()"><i class="fas fa-trash"></i> Tozalash</button>
+                <button class="btn-pdf" onclick="generatePDF()"><i class="fas fa-file-pdf"></i> To'liq Hisobot (PDF)</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- AUTHENTICATION LOGIC ---
+        const authSection = document.getElementById('auth-section');
+        const dashboardSection = document.getElementById('dashboard-section');
+        const loginForm = document.getElementById('login-form');
+        const registerForm = document.getElementById('register-form');
+
+        window.onload = function() {
+            const currentUser = localStorage.getItem('gc_user');
+            if (currentUser) {
+                showDashboard(JSON.parse(currentUser));
+                loadSavedData();
+            }
+        };
+
+        function toggleAuth() {
+            if (loginForm.style.display === 'none') {
+                loginForm.style.display = 'block';
+                registerForm.style.display = 'none';
+            } else {
+                loginForm.style.display = 'none';
+                registerForm.style.display = 'block';
+            }
+            clearErrors();
+        }
+
+        function clearErrors() {
+            document.getElementById('login-error').style.display = 'none';
+            document.getElementById('reg-error').style.display = 'none';
+        }
+
+        registerForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const phone = document.getElementById('reg-phone').value.trim();
+            const pass = document.getElementById('reg-pass').value;
+            const confirm = document.getElementById('reg-confirm').value;
+            const errorDiv = document.getElementById('reg-error');
+
+            if (pass !== confirm) { errorDiv.textContent = "Parollar mos kelmadi!"; errorDiv.style.display = 'block'; return; }
+            if (pass.length < 6) { errorDiv.textContent = "Parol kamida 6 ta belgidan iborat bo'lishi kerak."; errorDiv.style.display = 'block'; return; }
+
+            const user = { phone: phone, password: pass };
+            localStorage.setItem('gc_users_db', JSON.stringify(user));
+            alert("Muvaffaqiyatli ro'yxatdan o'tdingiz!");
+            toggleAuth();
+        });
+
+        loginForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const phone = document.getElementById('login-phone').value.trim();
+            const pass = document.getElementById('login-pass').value;
+            const errorDiv = document.getElementById('login-error');
+
+            const storedUserStr = localStorage.getItem('gc_users_db');
+            if (!storedUserStr) { errorDiv.textContent = "Foydalanuvchi topilmadi."; errorDiv.style.display = 'block'; return; }
+
+            const storedUser = JSON.parse(storedUserStr);
+            if (storedUser.phone === phone && storedUser.password === pass) {
+                localStorage.setItem('gc_user', JSON.stringify(storedUser));
+                showDashboard(storedUser);
+            } else {
+                errorDiv.textContent = "Telefon raqam yoki parol noto'g'ri.";
+                errorDiv.style.display = 'block';
+            }
+        });
+
+        function showDashboard(user) {
+            authSection.style.display = 'none';
+            dashboardSection.style.display = 'block';
+            document.getElementById('display-phone').textContent = user.phone;
+        }
+
+        function logout() {
+            localStorage.removeItem('gc_user');
+            location.reload();
+        }
+
+        // --- ADVANCED MEDICAL LOGIC (Based on Order 180 & WHO) ---
+        
+        function calculateTreatment(ageMonths, weightKg, dehydrationLevel, severityText, pathogen, ct) {
+            let planCode = "A"; // Default
+            let fluidVol = "0 ml";
+            let location = "Ambulator";
+            let emergencyAlert = false;
+            let dietAdvice = "";
+            let followUpDays = 0;
+
+            // 1. Determine Plan (A, B, C) based on Dehydration & Severity
+            if (dehydrationLevel === "severe" || (severityText === "OG'IR" && ct < 25)) {
+                planCode = "C";
+                emergencyAlert = true;
+                location = "SHOSHLINCH STASIONAR";
+                
+                // C Plan Fluid Calculation (WHO Order 180 logic simplified)
+                // 100ml/kg total over 6 hours (first 30ml/kg in 30min, then 70ml/kg in 2.5h)
+                if (weightKg) {
+                    let total = Math.round(weightKg * 100);
+                    fluidVol = `${total} ml (Jami 6 soatda)`;
+                } else {
+                    fluidVol = "100 ml/kg (6 soatda)";
+                }
+            } else if (dehydrationLevel === "some" || severityText === "O'RTACHA") {
+                planCode = "B";
+                location = "Stasionar yoki Kunuzatuv";
+                
+                // B Plan Fluid Calculation (75ml/kg over 4 hours)
+                if (weightKg) {
+                    let total = Math.round(weightKg * 75);
+                    fluidVol = `${total} ml (4 soatda)`;
+                } else {
+                    fluidVol = "75 ml/kg (4 soatda)";
+                }
+            } else {
+                planCode = "A";
+                location = "Ambulator (Uyda)";
+                fluidVol = "Ichganicha berish + ORS";
+            }
+
+            // 2. Diet Advice (Order 180)
+            if (ageMonths < 6) {
+                dietAdvice = "Ko'krak sutini tez-tez va uzoqroq emizish. Qo'shimcha ORS.";
+            } else if (ageMonths < 12) {
+                dietAdvice = "Laktozasiz aralashma yoki ko'krak suti. Sut mahsulotlarini cheklash.";
+            } else {
+                dietAdvice = "№4 Stol (Qovurilmagan, yog'siz, achchiqsiz). Meva-sharbatlarni cheklash.";
+            }
+
+            // 3. Medication Logic
+            let meds = ["ORS (Regidratatsiya)", "Rux preparatlari (Zinc)", "Probiotiklar"];
+            let notes = "";
+
+            const lowerPathogen = pathogen.toLowerCase();
+            if (lowerPathogen.includes("shigella") || lowerPathogen.includes("salmonella") || lowerPathogen.includes("campylobacter")) {
+                if (planCode === "C" || severityText === "OG'IR") {
+                    meds.push("Antibiotik: Seftriakson (v/i)");
+                    notes = "Bakterial infektsiya. Og'ir shakl.";
+                    followUpDays = 15; // Salmonella/Dysentery exclusion rule
+                } else {
+                    meds.push("Antibiotik: Azitromitsin yoki Sefiksim");
+                    notes = "Bakterial infektsiya.";
+                    followUpDays = 15;
+                }
+            } else {
+                notes = "Virusli infektsiya. Antibiotik TALAB ETILMAYDI.";
+            }
+
+            // 4. Follow up logic for PDF
+            let dischargeRule = "Klinik sog'aygandan keyin.";
+            if (followUpDays > 0) {
+                dischargeRule = `Davolanish tugaganidan ${followUpDays} kun o'tib, 3 marta najas tekshiruvi manfiy bo'lganda.`;
+            }
+
+            return {
+                planCode, fluidVol, location, emergencyAlert, dietAdvice, meds, notes, dischargeRule
+            };
+        }
+
+        function getSeverity(ct) {
+            if (ct < 25) return { text: "OG'IR", class: "bg-severe" };
+            if (ct >= 25 && ct <= 35) return { text: "O'RTACHA", class: "bg-moderate" };
+            return { text: "ENGIL", class: "bg-mild" };
+        }
+
+        // --- DATA MANAGEMENT ---
+        let analysisData = [];
+
+        function renderTable() {
+            const tbody = document.querySelector('#results-table tbody');
+            tbody.innerHTML = '';
+            
+            if (analysisData.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding: 20px;">Hozircha ma\'lumot yo\'q</td></tr>';
+                document.getElementById('results-section').style.display = 'none';
+                return;
+            }
+
+            document.getElementById('results-section').style.display = 'block';
+
+            analysisData.forEach((item, index) => {
+                // Recalculate treatment details for display
+                const details = calculateTreatment(item.age, item.weight, item.dehydration, item.severity.text, item.pathogen, item.ct);
+                
+                const locationBadge = details.emergencyAlert ? 
+                    `<span class="badge bg-alert">${details.location}</span>` : 
+                    `<span class="badge bg-info">${details.location}</span>`;
+
+                const tr = `<tr>
+                    <td>${item.fio}</td>
+                    <td>${item.pathogen}</td>
+                    <td><strong>${item.ct}</strong></td>
+                    <td><span class="badge ${item.severity.class}">${item.severity.text}</span></td>
+                    <td><strong>${details.planCode} Rejasi</strong></td>
+                    <td>${details.fluidVol}</td>
+                    <td>${locationBadge}</td>
+                    <td style="font-size: 0.8rem; max-width: 150px;">${details.meds[0]}<br><small style="color:#666">${details.notes}</small></td>
+                </tr>`;
+                tbody.innerHTML += tr;
+            });
+        }
+
+        function saveDataToStorage() {
+            localStorage.setItem('gc_analysis_data', JSON.stringify(analysisData));
+        }
+
+        function loadSavedData() {
+            const saved = localStorage.getItem('gc_analysis_data');
+            if (saved) {
+                analysisData = JSON.parse(saved);
+                renderTable();
+            }
+        }
+
+        function clearAllData() {
+            if(confirm("Barcha ma'lumotlarni o'chirmoqchimisiz?")) {
+                analysisData = [];
+                saveDataToStorage();
+                renderTable();
+            }
+        }
+
+        // --- MANUAL ENTRY ---
+        function addManualData(e) {
+            e.preventDefault();
+            const fio = document.getElementById('m-fio').value;
+            const pathogen = document.getElementById('m-pathogen').value;
+            const age = parseFloat(document.getElementById('m-age').value);
+            const weight = parseFloat(document.getElementById('m-weight').value);
+            const ct = parseFloat(document.getElementById('m-ct').value);
+            const dehydration = document.getElementById('m-dehydration').value;
+
+            if (!isNaN(ct)) {
+                const severity = getSeverity(ct);
+                analysisData.push({
+                    fio: fio,
+                    pathogen: pathogen,
+                    age: age,
+                    weight: weight,
+                    ct: ct,
+                    dehydration: dehydration,
+                    severity: severity,
+                    source: "Qo'lda"
+                });
+                
+                saveDataToStorage();
+                renderTable();
+                document.getElementById('manual-form').reset();
+                alert("Ma'lumot qo'shildi va davolash rejasi hisoblandi!");
+            }
+        }
+
+        // --- EXCEL/CSV UPLOAD ---
+        function handleFileUpload(input) {
+            const file = input.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const text = e.target.result;
+                parseCSV(text);
+            };
+            reader.readAsText(file);
+        }
+
+        function parseCSV(csvText) {
+            const rows = csvText.split('\n').map(row => row.trim()).filter(row => row !== '');
+            let count = 0;
+
+            rows.forEach((row, index) => {
+                if (index < 2) return; 
+                
+                let cleanRow = row.replace(/\|/g, '').trim();
+                let cols = cleanRow.split(/\s{2,}/); 
+
+                if (cols.length >= 7) {
+                    const fio = cols[1] || "Noma'lum";
+                    const ageStr = cols[2] || "1"; // Assuming column 2 is age
+                    const pathogenRaw = cols[5] || "";
+                    
+                    if (pathogenRaw.toLowerCase().includes("aniqlanmadi") || pathogenRaw === "") return;
+
+                    let ctVal = cols[6];
+                    if (ctVal && ctVal.includes('/')) ctVal = ctVal.split('/')[0];
+                    const ct = parseFloat(ctVal);
+
+                    // Parse Age roughly (if "1 yosh" -> 12 months, if just number assume years or months based on context, defaulting to years*12 for logic if > 3)
+                    let ageMonths = parseFloat(ageStr);
+                    if(ageMonths < 5) ageMonths *= 12; // Simple heuristic
+
+                    if (!isNaN(ct)) {
+                        const severity = getSeverity(ct);
+                        analysisData.push({
+                            fio: fio,
+                            pathogen: pathogenRaw,
+                            age: ageMonths,
+                            weight: null, // Weight not usually in simple CSV, needs manual entry or complex parsing
+                            ct: ct,
+                            dehydration: "none", // Default unless specified in CSV
+                            severity: severity,
+                            source: "Excel"
+                        });
+                        count++;
+                    }
+                }
+            });
+
+            if (count > 0) {
+                saveDataToStorage();
+                renderTable();
+                alert(`${count} ta bemor tahlil qilindi! Vaznni qo'lda kiritish tavsiya etiladi.`);
+                document.getElementById('results-section').scrollIntoView({ behavior: 'smooth' });
+            } else {
+                alert("Faylda to'g'ri ma'lumotlar topilmadi.");
+            }
+        }
+
+        // --- ADVANCED PDF GENERATION ---
+        function generatePDF() {
+            if (analysisData.length === 0) { alert("PDF yaratish uchun ma'lumot yo'q!"); return; }
+
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+
+            // Header
+            doc.setFillColor(0, 102, 204);
+            doc.rect(0, 0, 210, 45, 'F');
+            doc.setTextColor(255, 255, 255);
+            doc.setFontSize(24);
+            doc.setFont("helvetica", "bold");
+            doc.text("GastroCheck UZ", 14, 25);
+            doc.setFontSize(12);
+            doc.text("Klinik Tahlil va Davolash Rejasi (Buyruq 180)", 14, 33);
+            
+            const dateStr = new Date().toLocaleDateString('uz-UZ');
+            const userPhone = document.getElementById('display-phone').textContent;
+            doc.text(`Sana: ${dateStr} | Shifokor: ${userPhone}`, 14, 40);
+            doc.setFontSize(9);
+            doc.text("Manba: O'zR SSV 180-sonli buyrug'i va JSST ko'rsatmalari", 14, 44);
+
+            // Table Columns
+            const tableColumn = ["F.I.O", "Patogen", "Ct", "Daraja", "Reja", "Suyuqlik", "Joy", "Tavsiya"];
+            const tableRows = [];
+
+            analysisData.forEach(item => {
+                const details = calculateTreatment(item.age, item.weight, item.dehydration, item.severity.text, item.pathogen, item.ct);
+                
+                tableRows.push([
+                    item.fio, 
+                    item.pathogen, 
+                    item.ct, 
+                    item.severity.text, 
+                    details.planCode, 
+                    details.fluidVol, 
+                    details.location, 
+                    details.meds.join(", ")
+                ]);
+            });
+
+            doc.autoTable({
+                head: [tableColumn],
+                body: tableRows,
+                startY: 55,
+                theme: 'grid',
+                headStyles: { fillColor: [0, 102, 204], textColor: 255, fontSize: 9 },
+                bodyStyles: { fontSize: 8 },
+                columnStyles: {
+                    7: { cellWidth: 50 } // Truncate long advice
+                },
+                margin: { top: 55 }
+            });
+
+            // Footer Notes (Protocol specifics)
+            const finalY = doc.lastAutoTable.finalY + 15;
+            doc.setFontSize(9);
+            doc.setTextColor(50);
+            doc.text("MUHIM ESLATMALAR:", 14, finalY);
+            doc.setFontSize(8);
+            doc.text("- A rejasi: Uyda davolash. Qo'shimcha suyuqlik, Rux, Emizishni davom ettirish.", 14, finalY + 5);
+            doc.text("- B rejasi: Tibbiyot muassasasida 4 soat ichida ORS berish (75ml/kg).", 14, finalY + 9);
+            doc.text("- C rejasi: SHOSHLINCH vena ichiga suyuqlik quyish (100ml/kg).", 14, finalY + 13);
+            doc.text("- Salmonellyoz/Dizenteriya: Maktabgacha ta'limga qabul qilish uchun 3 marta manfiy najas ekmasi talab etiladi.", 14, finalY + 17);
+            
+            doc.save(`GastroCheck_Toliq_Hisobot_${Date.now()}.pdf`);
+        }
+    </script>
+</body>
+</html>
